@@ -9,20 +9,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
-import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// --- التصحيح هنا: استيراد الأيقونات مباشرة ---
+import com.codedigest.ix.R
 import compose.icons.SimpleIcons
 import compose.icons.simpleicons.Github
 import compose.icons.simpleicons.Telegram
@@ -31,7 +32,6 @@ import compose.icons.simpleicons.Telegram
 fun AboutDialog(onDismiss: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
-    
     val appVersion = remember {
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
@@ -40,7 +40,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
             "v1.0"
         }
     }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = null,
@@ -51,32 +51,31 @@ fun AboutDialog(onDismiss: () -> Unit) {
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header
                 Box(
                     modifier = Modifier
-                        .size(64.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                        .size(84.dp), 
+                        // .background(Color(0xFFE0E0E0), CircleShape), 
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.Bolt,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = "App Icon",
+                        modifier = Modifier.size(192.dp),
+                        tint = Color.Unspecified
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
+
+                Spacer(modifier = Modifier.height(2.dp))
+
                 Text(
-                    text = "CodeDigest IX",
+                    text = "CodeDigest",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
-                
+
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(8.dp)
@@ -90,16 +89,16 @@ fun AboutDialog(onDismiss: () -> Unit) {
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 Text(
                     text = "Transform your project directories into a single, optimized context file for LLMs.",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 Text(
                     text = "Designed & Developed by",
                     style = MaterialTheme.typography.labelSmall,
@@ -107,24 +106,20 @@ fun AboutDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
                 )
 
-                // --- GitHub Card ---
                 DeveloperCard(
                     title = "RHineIx",
                     subtitle = "@GitHub",
-                    // التصحيح: استدعاء مباشر بدون Brands
-                    icon = SimpleIcons.Github, 
+                    icon = SimpleIcons.Github,
                     onClick = { uriHandler.openUri("https://github.com/RHineIx") }
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // --- Telegram Card ---
                 DeveloperCard(
                     title = "RHineIx",
                     subtitle = "@Telegram",
-                    // التصحيح: استدعاء مباشر بدون Brands
                     icon = SimpleIcons.Telegram,
-                    onClick = { uriHandler.openUri("https://t.me/RHineix") }
+                    onClick = { uriHandler.openUri("https://t.me/RHineIx") }
                 )
             }
         },
@@ -169,9 +164,7 @@ fun DeveloperCard(
                 modifier = Modifier.size(28.dp),
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
-            
             Spacer(modifier = Modifier.width(16.dp))
-            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -185,7 +178,6 @@ fun DeveloperCard(
                     color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                 )
             }
-            
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
                 contentDescription = null,

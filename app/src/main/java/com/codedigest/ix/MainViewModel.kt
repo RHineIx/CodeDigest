@@ -24,20 +24,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val state = _state.asStateFlow()
 
     init {
-        // استرجاع البيانات المحفوظة عند فتح التطبيق
         viewModelScope.launch {
-            prefs.preferencesFlow.collect { settings ->
-                _config.value = _config.value.copy(
-                    excludePatterns = settings.excludePatterns.split(",").map { it.trim() }.filter { it.isNotEmpty() },
-                    removeComments = settings.removeComments,
-                    showTokenCount = settings.showTokenCount
+            prefs.preferencesFlow.collect { (savedConfig, uris) ->
+                val (savedSource, savedIgnore) = uris
+                
+                _config.value = savedConfig.copy(
+                    sourceUri = if (savedSource?.isNotEmpty() == true) try { Uri.parse(savedSource) } catch(e: Exception) { null } else _config.value.sourceUri,
+                    customGitIgnoreUri = if (savedIgnore?.isNotEmpty() == true) try { Uri.parse(savedIgnore) } catch(e: Exception) { null } else _config.value.customGitIgnoreUri
                 )
-                if (settings.savedSourceUri.isNotEmpty()) {
-                     try { _config.value = _config.value.copy(sourceUri = Uri.parse(settings.savedSourceUri)) } catch(_:Exception){}
-                }
-                if (settings.savedIgnoreUri.isNotEmpty()) {
-                    try { _config.value = _config.value.copy(customGitIgnoreUri = Uri.parse(settings.savedIgnoreUri)) } catch(_:Exception){}
-                }
             }
         }
     }
@@ -46,49 +40,108 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _config.value = _config.value.copy(sourceUri = uri)
         viewModelScope.launch { prefs.saveSourceUri(uri.toString()) }
     }
-    
+
+    // NEW: Clear Source URI
+    fun clearSourceUri() {
+        _config.value = _config.value.copy(sourceUri = null)
+        viewModelScope.launch { prefs.saveSourceUri("") }
+    }
+
     fun updateCustomIgnoreUri(uri: Uri) {
         _config.value = _config.value.copy(customGitIgnoreUri = uri)
         viewModelScope.launch { prefs.saveIgnoreUri(uri.toString()) }
     }
 
-    fun toggleFastMode(v: Boolean) { _config.value = _config.value.copy(fastMode = v) }
-    fun toggleSkipTree(v: Boolean) { _config.value = _config.value.copy(skipTree = v) }
-    fun toggleCompactMode(v: Boolean) { _config.value = _config.value.copy(compactMode = v) }
-    fun toggleUseGitIgnore(v: Boolean) { _config.value = _config.value.copy(useGitIgnore = v) }
+    // NEW: Clear Ignore URI
+    fun clearCustomIgnoreUri() {
+        _config.value = _config.value.copy(customGitIgnoreUri = null)
+        viewModelScope.launch { prefs.saveIgnoreUri("") }
+    }
+
+    fun toggleFastMode(v: Boolean) { 
+        _config.value = _config.value.copy(fastMode = v)
+        saveCurrentConfig()
+    }
+    
+    fun toggleSkipTree(v: Boolean) { 
+        _config.value = _config.value.copy(skipTree = v)
+        saveCurrentConfig()
+    }
+    
+    fun toggleCompactMode(v: Boolean) { 
+        _config.value = _config.value.copy(compactMode = v)
+        saveCurrentConfig()
+    }
+    
+    fun toggleUseGitIgnore(v: Boolean) { 
+        _config.value = _config.value.copy(useGitIgnore = v)
+        saveCurrentConfig()
+    }
     
     fun toggleRemoveComments(v: Boolean) { 
         _config.value = _config.value.copy(removeComments = v)
-        saveCurrentSettings()
+        saveCurrentConfig()
     }
-    
+
     fun toggleShowTokens(v: Boolean) {
         _config.value = _config.value.copy(showTokenCount = v)
-        saveCurrentSettings()
+        saveCurrentConfig()
+    }
+
+    fun updateMaxFileSize(kb: Int) {
+        _config.value = _config.value.copy(maxFileSizeKB = kb)
+        saveCurrentConfig()
     }
 
     fun updateExcludePatterns(text: String) {
         val list = text.split(",").map { it.trim() }.filter { it.isNotEmpty() }
         _config.value = _config.value.copy(excludePatterns = list)
-        saveCurrentSettings()
+        saveCurrentConfig()
     }
 
-    private fun saveCurrentSettings() {
-        viewModelScope.launch {
-            prefs.saveSettings(
-                exclude = _config.value.excludePatterns.joinToString(","),
-                removeComments = _config.value.removeComments,
-                showTokens = _config.value.showTokenCount
+    fun applyPreset(presetName: String) {
+        val currentPatterns = _config.value.excludePatterns.toMutableSet()
+        
+        val newPatterns = when(presetName) {
+            "Android" -> listOf(
+                "build", ".gradle", "local.properties", ".idea", 
+                "*.png", "*.jpg", "*.jpeg", "*.webp", "*.svg", "*.ico",
+                "*.so", "*.aar", "*.jar", "*.apk", "captures"
             )
+            "Web" -> listOf(
+                "node_modules", ".next", ".nuxt", "dist", "build", "coverage",
+                "package-lock.json", "yarn.lock", ".cache", "*.log"
+            )
+            "Python/AI" -> listOf(
+                "__pycache__", "*.pyc", "venv", ".venv", ".env", 
+                ".git", ".ipynb_checkpoints", "poetry.lock"
+            )
+            "Media" -> listOf(
+                "*.mp4", "*.mp3", "*.wav", "*.mov", "*.avi", "*.mkv",
+                "*.jpg", "*.png", "*.gif", "*.pdf", "*.zip", "*.gz"
+            )
+            else -> emptyList()
+        }
+
+        currentPatterns.addAll(newPatterns)
+        
+        _config.value = _config.value.copy(excludePatterns = currentPatterns.toList())
+        saveCurrentConfig()
+    }
+
+    private fun saveCurrentConfig() {
+        viewModelScope.launch {
+            prefs.saveConfig(_config.value)
         }
     }
 
     fun startProcessing() {
         if (_config.value.sourceUri == null) return
+
         viewModelScope.launch {
             engine.process(_config.value).collect { _state.value = it }
         }
     }
-    
+
     fun resetState() { _state.value = ProcessingState.Idle }
 }
