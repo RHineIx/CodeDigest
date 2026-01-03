@@ -2,9 +2,14 @@ package com.codedigest.ix.ui.components
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.TaskAlt
@@ -13,12 +18,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import com.codedigest.ix.R
 import com.codedigest.ix.data.ProcessingState
 import java.io.File
+import java.util.ArrayList
 
 @Composable
 fun ProcessingStatusPanel(state: ProcessingState) {
@@ -44,12 +55,11 @@ fun ProcessingStatusPanel(state: ProcessingState) {
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Scanning...", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.status_scanning), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     } else if (state is ProcessingState.Processing) {
-                        Text("Processing...", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.status_processing), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     }
                 }
-
                 if (state is ProcessingState.Processing) {
                     Text(
                         "${(state.progress * 100).toInt()}%",
@@ -59,14 +69,11 @@ fun ProcessingStatusPanel(state: ProcessingState) {
                     )
                 }
             }
-            
             Spacer(modifier = Modifier.height(10.dp))
-            
             val progress = if (state is ProcessingState.Processing) state.progress else 0f
             val isScanning = state is ProcessingState.Scanning
-            
             if (isScanning) {
-                 LinearProgressIndicator(
+                LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
@@ -86,7 +93,10 @@ fun ProcessingStatusPanel(state: ProcessingState) {
 @Composable
 fun ResultCard(state: ProcessingState.Success, onDone: () -> Unit) {
     val context = LocalContext.current
-    
+    val displayLimit = 50
+    val filesToShow = state.files.take(displayLimit)
+    val remainingCount = state.files.size - displayLimit
+
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         shape = RoundedCornerShape(24.dp)
@@ -95,19 +105,84 @@ fun ResultCard(state: ProcessingState.Success, onDone: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.TaskAlt, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
                 Spacer(Modifier.width(12.dp))
-                Text("Success!", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text(stringResource(R.string.digest_complete), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
             
-            Spacer(Modifier.height(12.dp))
-            Text(state.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Spacer(Modifier.height(16.dp))
+
+            // Stats Row
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                StatItem(
+                    icon = Icons.Default.Code,
+                    label = stringResource(R.string.stat_source_files),
+                    value = state.totalSourceFiles.toString(),
+                    modifier = Modifier.weight(1f)
+                )
+                StatItem(
+                    icon = Icons.Default.Description,
+                    label = stringResource(R.string.stat_total_tokens),
+                    value = formatTokens(state.totalTokens),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+            
+            Text(
+                state.message, 
+                style = MaterialTheme.typography.bodyMedium, 
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // List of generated files (Limited)
+            Surface(
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(max = 140.dp)
+            ) {
+                LazyColumn(
+                    contentPadding = PaddingValues(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    items(filesToShow) { file ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Description, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(file.name, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
+                        }
+                    }
+                    if (remainingCount > 0) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.more_files_count, remainingCount),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
+
             Spacer(Modifier.height(24.dp))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // OPEN: Opens only the first file (Part 1)
                 FilledTonalButton(
-                    onClick = { openFile(context, state.uri) },
+                    onClick = { 
+                        if (state.files.isNotEmpty()) {
+                            openFile(context, state.files.first()) 
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
@@ -116,11 +191,12 @@ fun ResultCard(state: ProcessingState.Success, onDone: () -> Unit) {
                 ) {
                     Icon(Icons.Default.OpenInNew, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Open")
+                    Text(stringResource(R.string.open_part_1))
                 }
-
+                
+                // SHARE: Shares ALL files together
                 FilledTonalButton(
-                    onClick = { shareFile(context, state.uri) },
+                    onClick = { shareMultipleFiles(context, state.files) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
@@ -129,59 +205,90 @@ fun ResultCard(state: ProcessingState.Success, onDone: () -> Unit) {
                 ) {
                     Icon(Icons.Default.Share, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Share")
+                    Text(stringResource(R.string.share_all))
                 }
             }
-            
             Spacer(modifier = Modifier.height(12.dp))
-            
             Button(
                 onClick = onDone,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Done")
+                Text(stringResource(R.string.done))
             }
         }
     }
 }
 
-private fun openFile(context: android.content.Context, uri: Uri) {
-    try {
-        val contentUri = if (uri.scheme == "file") {
-            FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.provider",
-                File(uri.path!!)
-            )
-        } else uri
+@Composable
+private fun StatItem(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+        }
+    }
+}
 
+private fun formatTokens(count: Long): String {
+    return when {
+        count < 1000 -> count.toString()
+        count < 1000000 -> String.format("%.1fk", count / 1000.0)
+        else -> String.format("%.1fM", count / 1000000.0)
+    }
+}
+
+private fun openFile(context: android.content.Context, file: File) {
+    try {
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.provider",
+            file
+        )
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(contentUri, "text/plain")
+            setDataAndType(uri, "text/plain")
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
         }
-        context.startActivity(Intent.createChooser(intent, "Open Digest with..."))
+        context.startActivity(Intent.createChooser(intent, context.getString(R.string.intent_open_with)))
     } catch (e: Exception) {
         e.printStackTrace()
     }
 }
 
-private fun shareFile(context: android.content.Context, uri: Uri) {
+private fun shareMultipleFiles(context: android.content.Context, files: List<File>) {
     try {
-        val contentUri = if (uri.scheme == "file") {
-            FileProvider.getUriForFile(
+        val uris = ArrayList<Uri>()
+        files.forEach { file ->
+            val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.provider",
-                File(uri.path!!)
+                file
             )
-        } else uri
+            uris.add(uri)
+        }
 
-        val intent = Intent(Intent.ACTION_SEND).apply {
+        val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_STREAM, contentUri)
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(intent, "Share Digest via..."))
+        context.startActivity(Intent.createChooser(intent, context.getString(R.string.intent_share_with)))
     } catch (e: Exception) {
         e.printStackTrace()
     }

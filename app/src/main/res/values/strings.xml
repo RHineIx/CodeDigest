@@ -1,3 +1,77 @@
 <resources>
     <string name="app_name">CodeDigest</string>
+    
+    <string name="app_description">Project Tree &amp; Source Generator</string>
+    <string name="about_button_desc">About</string>
+    <string name="start_digestion">START DIGESTION</string>
+
+    <string name="about_dialog_version">v%1$s</string>
+    <string name="app_icon_desc">App Icon</string>
+    <string name="about_app_desc">Transform your project directories into a single, optimized context file for LLMs.</string>
+    <string name="designed_by">Designed &amp; Developed by</string>
+    <string name="close_button">Close</string>
+
+    <string name="section_source">SOURCE</string>
+    <string name="tap_to_select">Tap to select</string>
+    <string name="project_folder">Project Folder</string>
+    <string name="selected_prefix">Selected: %1$s</string>
+    <string name="optional">Optional</string>
+    <string name="custom_gitignore">Custom .gitignore</string>
+
+    <string name="section_configuration">CONFIGURATION</string>
+    <string name="output_strategy">Output Strategy</string>
+    <string name="output_strategy_desc">Choosing the right output format helps AI models understand your code structure better.\n\nToken splitting automatically breaks large projects into multiple parts (Part1, Part2...) to fit within context windows.</string>
+    <string name="got_it">Got it</string>
+    
+    <string name="format_plain">Plain</string>
+    <string name="format_markdown">Markdown</string>
+    <string name="format_xml">XML</string>
+
+    <string name="split_by_tokens">Split by Tokens (Context Window)</string>
+    <string name="limit_none">None</string>
+    <string name="limit_32k">32k</string>
+    <string name="limit_128k">128k</string>
+    <string name="limit_200k">200k</string>
+    
+    <string name="custom_limit_label">Custom Limit (e.g. 50000)</string>
+    <string name="custom_limit_placeholder">Leave empty for preset</string>
+    <string name="max_file_size_label">Max Single File Size (KB)</string>
+    <string name="max_file_size_placeholder">0 = Unlimited</string>
+    
+    <string name="toggle_exclude_gitignore">Exclude .gitignore rules</string>
+    <string name="toggle_remove_comments">Remove Comments</string>
+    <string name="toggle_compact_mode">Compact Mode</string>
+    <string name="toggle_calculate_tokens">Calculate Tokens</string>
+    <string name="toggle_skip_tree">Skip Tree Generation</string>
+    
+    <string name="exclude_patterns_label">Exclude Patterns</string>
+    <string name="clear_desc">Clear</string>
+
+    <string name="status_scanning">Scanning...</string>
+    <string name="status_processing">Processing...</string>
+    <string name="digest_complete">Digest Complete!</string>
+    <string name="stat_source_files">Source Files</string>
+    <string name="stat_total_tokens">Total Tokens</string>
+    <string name="open_part_1">Open Part 1</string>
+    <string name="share_all">Share All</string>
+    <string name="done">Done</string>
+    <string name="more_files_count">... and %1$d more files</string>
+    
+    <string name="intent_open_with">Open Digest with...</string>
+    <string name="intent_share_with">Share generated files...</string>
+
+    <string name="err_no_source_uri">No source URI provided</string>
+    <string name="err_cannot_access_folder">Cannot access source folder</string>
+    <string name="err_no_matching_files">No matching files found!</string>
+    <string name="err_unknown">Unknown Error</string>
+    <string name="processing_file_progress">Processing: %1$s</string>
+    
+    <string name="success_saved_msg">Saved %1$d file(s) to:\nCodeDigest/%2$s\nTotal Tokens: %3$d</string>
+    
+    <string name="file_truncated_msg">\n\n[...File Truncated. Continued in next part...]\n</string>
+    <string name="file_continuation_msg">\n[...Continuation of file: %1$s...]\n\n</string>
+    <string name="selected_default">Selected</string>
+    <string name="unknown_filename">Unknown</string>
+    <string name="check_icon_desc">Selected</string>
+    <string name="chevron_icon_desc">Arrow</string>
 </resources>

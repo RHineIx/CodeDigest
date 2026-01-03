@@ -1,11 +1,11 @@
 package com.codedigest.ix.data
 
-import android.net.Uri
+import java.io.File
 
 sealed class ProcessingState {
     object Idle : ProcessingState()
     object Scanning : ProcessingState()
-
+    
     data class Processing(
         val currentFile: String,
         val progress: Float,
@@ -14,7 +14,9 @@ sealed class ProcessingState {
     ) : ProcessingState()
 
     data class Success(
-        val uri: Uri,
+        val files: List<File>,
+        val totalSourceFiles: Int,
+        val totalTokens: Long,
         val message: String
     ) : ProcessingState()
 

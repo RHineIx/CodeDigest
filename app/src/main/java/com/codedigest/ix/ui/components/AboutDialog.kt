@@ -1,10 +1,8 @@
 package com.codedigest.ix.ui.components
 
 import android.content.pm.PackageManager
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,6 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,12 +31,13 @@ import compose.icons.simpleicons.Telegram
 fun AboutDialog(onDismiss: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    
     val appVersion = remember {
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            "v${packageInfo.versionName}"
+            context.getString(R.string.about_dialog_version, packageInfo.versionName)
         } catch (e: PackageManager.NameNotFoundException) {
-            "v1.0"
+            context.getString(R.string.about_dialog_version, "1.0")
         }
     }
 
@@ -52,30 +52,24 @@ fun AboutDialog(onDismiss: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(84.dp), 
-                        // .background(Color(0xFFE0E0E0), CircleShape), 
+                    modifier = Modifier.size(84.dp), 
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = "App Icon",
+                        contentDescription = stringResource(R.string.app_icon_desc),
                         modifier = Modifier.size(192.dp),
                         tint = Color.Unspecified
                     )
                 }
-
                 Spacer(modifier = Modifier.height(2.dp))
-
                 Text(
-                    text = "CodeDigest",
+                    text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(8.dp)
@@ -87,34 +81,27 @@ fun AboutDialog(onDismiss: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
-
                 Text(
-                    text = "Transform your project directories into a single, optimized context file for LLMs.",
+                    text = stringResource(R.string.about_app_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
                 Spacer(modifier = Modifier.height(24.dp))
-
                 Text(
-                    text = "Designed & Developed by",
+                    text = stringResource(R.string.designed_by),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
                 )
-
                 DeveloperCard(
                     title = "RHineIx",
                     subtitle = "@GitHub",
                     icon = SimpleIcons.Github,
                     onClick = { uriHandler.openUri("https://github.com/RHineIx") }
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 DeveloperCard(
                     title = "RHineIx",
                     subtitle = "@Telegram",
@@ -128,7 +115,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Close", fontSize = 16.sp)
+                Text(stringResource(R.string.close_button), fontSize = 16.sp)
             }
         },
         shape = RoundedCornerShape(28.dp),

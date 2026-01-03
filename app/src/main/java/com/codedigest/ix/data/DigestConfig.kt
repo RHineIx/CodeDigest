@@ -2,6 +2,12 @@ package com.codedigest.ix.data
 
 import android.net.Uri
 
+enum class OutputFormat {
+    PLAIN_TEXT,
+    MARKDOWN,
+    XML
+}
+
 data class DigestConfig(
     val sourceUri: Uri? = null,
     val customGitIgnoreUri: Uri? = null,
@@ -12,5 +18,7 @@ data class DigestConfig(
     val skipTree: Boolean = false,
     val useGitIgnore: Boolean = true,
     val fastMode: Boolean = false,
-    val maxFileSizeKB: Int = 0 // 0 means Unlimited
+    val maxFileSizeKB: Int = 0,
+    val outputFormat: OutputFormat = OutputFormat.PLAIN_TEXT,
+    val tokenLimit: Int = 0
 )

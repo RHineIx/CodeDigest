@@ -13,22 +13,21 @@ class PreferencesManager(private val context: Context) {
         val SOURCE_URI = stringPreferencesKey("source_uri")
         val CUSTOM_IGNORE_URI = stringPreferencesKey("ignore_uri")
         val EXCLUDE_PATTERNS = stringPreferencesKey("exclude_patterns")
-        
-        // Settings Flags
         val REMOVE_COMMENTS = booleanPreferencesKey("remove_comments")
         val SHOW_TOKEN_COUNT = booleanPreferencesKey("show_token_count")
         val COMPACT_MODE = booleanPreferencesKey("compact_mode")
         val SKIP_TREE = booleanPreferencesKey("skip_tree")
         val USE_GIT_IGNORE = booleanPreferencesKey("use_git_ignore")
         val FAST_MODE = booleanPreferencesKey("fast_mode")
-        
-        // New Feature: File Size Limit
         val MAX_FILE_SIZE_KB = intPreferencesKey("max_file_size_kb")
+        val OUTPUT_FORMAT = stringPreferencesKey("output_format")
+        val TOKEN_LIMIT = intPreferencesKey("token_limit")
     }
 
+    // FIX: Changed return type to Triple to match MainViewModel expectation
     val preferencesFlow = context.dataStore.data.map { preferences ->
-        DigestConfig(
-            sourceUri = null, 
+        val config = DigestConfig(
+            sourceUri = null,
             customGitIgnoreUri = null,
             excludePatterns = (preferences[EXCLUDE_PATTERNS] ?: "").split(",").map { it.trim() }.filter { it.isNotEmpty() },
             removeComments = preferences[REMOVE_COMMENTS] ?: false,
@@ -37,8 +36,15 @@ class PreferencesManager(private val context: Context) {
             skipTree = preferences[SKIP_TREE] ?: false,
             useGitIgnore = preferences[USE_GIT_IGNORE] ?: true,
             fastMode = preferences[FAST_MODE] ?: false,
-            maxFileSizeKB = preferences[MAX_FILE_SIZE_KB] ?: 0 // Default 0 (Unlimited)
-        ) to (preferences[SOURCE_URI] to preferences[CUSTOM_IGNORE_URI])
+            maxFileSizeKB = preferences[MAX_FILE_SIZE_KB] ?: 0,
+            outputFormat = try {
+                OutputFormat.valueOf(preferences[OUTPUT_FORMAT] ?: OutputFormat.PLAIN_TEXT.name)
+            } catch (e: Exception) { OutputFormat.PLAIN_TEXT },
+            tokenLimit = preferences[TOKEN_LIMIT] ?: 0
+        )
+        
+        // Return as Triple (Config, SourceString?, IgnoreString?)
+        Triple(config, preferences[SOURCE_URI], preferences[CUSTOM_IGNORE_URI])
     }
 
     suspend fun saveSourceUri(uri: String) {
@@ -59,6 +65,8 @@ class PreferencesManager(private val context: Context) {
             prefs[USE_GIT_IGNORE] = config.useGitIgnore
             prefs[FAST_MODE] = config.fastMode
             prefs[MAX_FILE_SIZE_KB] = config.maxFileSizeKB
+            prefs[OUTPUT_FORMAT] = config.outputFormat.name
+            prefs[TOKEN_LIMIT] = config.tokenLimit
         }
     }
 }
